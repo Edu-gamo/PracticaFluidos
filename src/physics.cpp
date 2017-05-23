@@ -56,25 +56,20 @@ void GUI() {
 	}
 }
 
+void AddWave(vec3 dir, float ampli, float frec) {
+	waveDir.push_back(dir);
+	waveAmp.push_back(ampli);
+	waveFrec.push_back(frec);
+}
+
 void PhysicsInit() {
 	//TODO
 
 	time = 0.0f;
 
-	//Wave 1
-	waveDir.push_back(vec3(1.5f, 0.0f, 1.0f));
-	waveAmp.push_back(0.2f);
-	waveFrec.push_back(5.0f);
-
-	//Wave 2
-	waveDir.push_back(vec3(1.0f, 0.0f, 1.5f));
-	waveAmp.push_back(0.1f);
-	waveFrec.push_back(2.0f);
-
-	//Wave 3
-	waveDir.push_back(vec3(-1.0f, 0.0f, 1.5f));
-	waveAmp.push_back(0.3f);
-	waveFrec.push_back(1.0f);
+	AddWave(vec3(1.5f, 0.0f, 1.0f), 0.2f, 5.0f);
+	AddWave(vec3(1.0f, 0.0f, 1.5f), 0.1f, 2.0f);
+	AddWave(vec3(-1.0f, 0.0f, 1.5f), 0.15f, 1.0f);
 
 	float initX = -3.0;
 	float initZ = -4.5;
@@ -94,6 +89,7 @@ void PhysicsUpdate(float dt) {
 
 	time += dt;
 
+	//Waves movement
 	for (int i = 0; i < maxPart; i++) {
 		vec3 sumaHola;
 		float sumaHolaY = 0.0f;
@@ -102,10 +98,10 @@ void PhysicsUpdate(float dt) {
 			sumaHolaY += waveAmp[j] * cos(dot(waveDir[j], particles[i].initPos) - waveFrec[j] *time);
 		}
 		particles[i].position = particles[i].initPos - sumaHola;
-		particles[i].position.y = sumaHolaY;
-		particles[i].position.y += 5.0f;
+		particles[i].position.y = sumaHolaY + 3.0f;
 	}
 
+	//Simple waves movement
 	/*for (int i = 0; i < maxPart; i++) {
 		particles[i].position = particles[i].initPos - (normalize(k))*amplitud*sin(dot(k, particles[i].initPos) - frec*time);
 		particles[i].position.y = amplitud*cos(dot(k, particles[i].initPos) - frec*time);
@@ -124,4 +120,5 @@ void PhysicsUpdate(float dt) {
 }
 void PhysicsCleanup() {
 	//TODO
+	delete[] particles;
 }
