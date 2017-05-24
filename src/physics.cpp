@@ -7,9 +7,15 @@
 using namespace std;
 using namespace glm;
 
+void PhysicsInit();
+
 vector<vec3> waveDir;
 vector<float> waveAmp;
 vector<float> waveFrec;
+
+vec3 force = vec3(0.0f, -9.8f, 0.0f);
+vec3 spherePos, spherePostPos, sphereVel, spherePostVel;
+float sphereMass;
 
 float time = 0.0f;
 
@@ -47,6 +53,9 @@ void GUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		//TODO
+		ImGui::Begin("");
+		if (ImGui::Button("Resetear Simulacion")) { PhysicsInit(); }
+		ImGui::End();
 	}
 
 	// ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
@@ -62,11 +71,25 @@ void AddWave(vec3 dir, float ampli, float frec) {
 	waveFrec.push_back(frec);
 }
 
+void RemoveWaves() {
+	waveDir.clear();
+	waveAmp.clear();
+	waveFrec.clear();
+}
+
 void PhysicsInit() {
 	//TODO
 
 	time = 0.0f;
 
+	spherePos = vec3(0.0f, 9.0f, 0.0f);
+	sphereVel = vec3(0.0f);
+	sphereMass = 1.0f;
+
+	//Reset vectors
+	RemoveWaves();
+
+	//Añadir Holas
 	AddWave(vec3(1.5f, 0.0f, 1.0f), 0.2f, 5.0f);
 	AddWave(vec3(1.0f, 0.0f, 1.5f), 0.1f, 2.0f);
 	AddWave(vec3(-1.0f, 0.0f, 1.5f), 0.15f, 1.0f);
@@ -84,10 +107,33 @@ void PhysicsInit() {
 		}
 	}
 }
+
 void PhysicsUpdate(float dt) {
 	//TODO
 
 	time += dt;
+
+	//Calcular posicion esfera
+	spherePostPos.x = spherePos.x + dt * sphereVel.x;
+	spherePostPos.y = spherePos.y + dt * sphereVel.y;
+	spherePostPos.z = spherePos.z + dt * sphereVel.z;
+
+	float sphereBottom = (spherePos.y - 1.0f);
+	float Vsub = 3.0f - sphereBottom;
+	if (Vsub > 8.0f) Vsub = 8.0f;
+	float buoyancy = 1.0f * -force.y * Vsub * 1.0f;
+
+	if (sphereBottom < 3.0f) {
+		//Calcular velocidad esfera
+		spherePostVel.x = sphereVel.x + dt * (force.x / sphereMass);
+		spherePostVel.y = sphereVel.y + dt * (buoyancy + force.y / sphereMass);
+		spherePostVel.z = sphereVel.z + dt * (force.z / sphereMass);
+	} else {
+		//Calcular velocidad esfera
+		spherePostVel.x = sphereVel.x + dt * (force.x / sphereMass);
+		spherePostVel.y = sphereVel.y + dt * (force.y / sphereMass);
+		spherePostVel.z = sphereVel.z + dt * (force.z / sphereMass);
+	}
 
 	//Waves movement
 	for (int i = 0; i < maxPart; i++) {
@@ -101,12 +147,17 @@ void PhysicsUpdate(float dt) {
 		particles[i].position.y = sumaHolaY + 3.0f;
 	}
 
+
+
 	//Simple waves movement
 	/*for (int i = 0; i < maxPart; i++) {
 		particles[i].position = particles[i].initPos - (normalize(k))*amplitud*sin(dot(k, particles[i].initPos) - frec*time);
 		particles[i].position.y = amplitud*cos(dot(k, particles[i].initPos) - frec*time);
 		particles[i].position.y += 5.0f;
 	}*/
+
+	spherePos = spherePostPos;
+	sphereVel = spherePostVel;
 
 	float *partVerts = new float[(14 * 18) * 3];
 	for (int i = 0; i < (14 * 18); ++i) {
@@ -118,7 +169,9 @@ void PhysicsUpdate(float dt) {
 	ClothMesh::updateClothMesh(partVerts);
 	delete[] partVerts;
 }
+
 void PhysicsCleanup() {
 	//TODO
+	RemoveWaves();
 	delete[] particles;
 }

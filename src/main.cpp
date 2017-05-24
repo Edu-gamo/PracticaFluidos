@@ -4,6 +4,9 @@
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_glfw_gl3.h>
 #include <cstdio>
+#include <glm\gtc\type_ptr.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+#include <cassert>
 
 #include "GL_framework.h"
 
@@ -19,6 +22,14 @@ extern void GLResize(int width, int height);
 extern void GLinit(int width, int height);
 extern void GLcleanup();
 extern void GLrender();
+
+extern glm::vec3 spherePos;
+
+extern bool renderSphere;
+
+namespace Sphere {
+	extern void updateSphere(glm::vec3 pos, float radius = 1.f);
+}
 
 namespace {
 	const int expected_fps = 30;
@@ -94,6 +105,9 @@ int main(int argc, char** argv){
 				MouseEvent::Button::None)))};
 			GLmousecb(ev);
 		}
+
+		Sphere::updateSphere(spherePos, 1.0f);
+
 		GLrender();
 	
 		glfwSwapBuffers(window);//Swap front and back buffers
